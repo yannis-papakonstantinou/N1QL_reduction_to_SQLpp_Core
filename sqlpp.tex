@@ -1,0 +1,120 @@
+
+
+\begin{figure}[t!]
+\scriptsize
+\begin{tabular}{|@{~}rc@{~}l@{~}|}
+\hline
+\hline
+         1  & \multicolumn{2}{@{}l@{~}|}{\gn{query}} \\
+         2  & \gp & \gn{sfw\_query} \\
+         3  & \gd & \gn{expr\_query} \\
+         4  & \gd & \gn{config\_annotation}+ \gl{(} \gn{query} \gl{)} \\ \hline
+         5  & \multicolumn{2}{@{}l@{~}|}{\gn{sfw\_query}} \\
+         6  & \gp & \gn{select\_clause} (see Figure~\ref{figure:select:bnf}) \\
+         7  &     & \gn{from\_clause} (see Figure~\ref{figure:from:bnf}) \\
+         8  &     & (\gl{WHERE} \gn{expr\_query})? \\
+         9  &     & (\gl{GROUP BY} \gn{expr\_query} (\gl{AS} \gn{var})? \\ 
+        10  &     & ~~~~(\gl{,} \gn{expr\_query} (\gl{AS} \gn{var})?)*)? \\
+        11  &     & (\gl{HAVING} \gn{expr\_query})? \\
+        12  &     & ((\gl{UNION}\gd\gl{INTERSECT}\gd\gl{EXCEPT}) \gl{ALL}? \gn{sfw\_query})? \\
+        13  &     & (\gl{ORDER BY} \gn{expr\_query} (\gl{ASC}\gd\gl{DESC})? \\
+        14  &     & ~~~~(\gl{,} \gn{expr\_query} (\gl{ASC}\gd\gl{DESC})?)*)? \\
+        15  &     & (\gl{LIMIT} \gn{expr\_query})? \\
+        16  &     & (\gl{OFFSET} \gn{expr\_query})? \\ \hline
+        17  & \multicolumn{2}{@{}l@{~}|}{\gn{expr\_query}} \\
+        18  & \gp & \gl{(} \gn{sfw\_query} \gl{)} \\
+        19  & \gd & \gn{named\_value} \\
+        20  & \gd & \gn{var} \\
+        21  & \gd & \gn{expr\_query} \gl{.} \gs{attr\_name} \\
+        22  & \gd & \gn{expr\_query} \gl{[} \gs{expr\_query} \gl{]} \\
+        23  & \gd & \gn{function\_name} \gl{(}\gn{expr\_query}? (\gl{,} \gn{expr\_query})* \gl{)} \\
+        24  & \gd & \gl{\{} (\gs{attr\_name}\gl{:}\gn{expr\_query})? (\gl{,} \gs{attr\_name}\gl{:}\gn{expr\_query})* \gl{\}} \\
+        25  & \gd & \gl{[} \gn{expr\_query}? (\gl{,} \gn{expr\_query})* \gl{]} \\
+        26  & \gd & \gl{\{\{} \gn{expr\_query}? (\gl{,} \gn{expr\_query})* \gl{\}\}} \\
+        27  & \gd & \gs{value} \\ \hline
+        28  & \multicolumn{2}{@{}l@{~}|}{\gn{config\_annotation}} \\
+        29  & \gp & \gl{@tuple\_nav} \gl{\{}\gn{path\_param} (\gl{,} \gn{path\_param})*\gl{\}} (see Figure~\ref{figure:paths:bnf}) \\
+        30  & \gd & \gl{@array\_nav} \gl{\{}\gn{path\_param} (\gl{,} \gn{path\_param})*\gl{\}} (see Figure~\ref{figure:paths:bnf}) \\
+        31  & \gd & \gl{@eq} \gl{\{}\gn{eq\_param} (\gl{,} \gn{eq\_param})*\gl{\}} (see Figure~\ref{figure:equality:bnf}) \\
+        32  & \gd & \gl{@from} \gl{\{}\gn{from\_param} (\gl{,} \gn{from\_param})*\gl{\}} (see Figure~\ref{figure:from:bnf}) \\
+        33  & \gd & \gl{@sql} \\
+        34  & \gd & \ldots \\
+\hline
+\hline
+\end{tabular} 
+\caption{BNF Grammar for SQL++ Queries}
+\label{figure:query:bnf}
+\end{figure}
+
+\newcommand{\linequery}[1]{%
+    \IfEqCase*{#1}{%
+    {sfw query}{lines~5-16}%
+    {expression query}{lines~17-27}%
+    {configuration options}{(line~4)}%
+    {configured query}{(Figure~\ref{figure:query:bnf}, lines~4, 28-34)}%
+    {parameter group}{(lines~28-32)}%
+    {config annotation}{(line~4)}%
+    {macro}{(line~33)}%
+    {tuple nav}{(Figure~\ref{figure:query:bnf}, line~21)}%
+    {array nav}{(line~22)}%
+    {path parameter groups}{(Figure~\ref{figure:query:bnf}, lines~29-30)}%
+    {equality parameter group}{(Figure~\ref{figure:query:bnf}, line~31)}%
+    {expression, sql}{(Figure~\ref{figure:query:bnf}, lines~18-19)}%
+    {expression, extensions}{(Figure~\ref{figure:query:bnf}, lines~20-27)}%
+    {constructors}{(Figure~\ref{figure:query:bnf}, lines~24-26)}%
+    {group by}{(Figure~\ref{figure:query:bnf}, lines~9-10)}%
+    }[\errmessage{Unable to ref #1 for query BNF}]%
+}%
+
+\begin{figure}
+\scriptsize
+\begin{tabular}{|@{~}rc@{~}l@{~}|}
+\hline
+\hline
+         1  & \multicolumn{2}{@{}l@{~}|}{\gn{from\_clause}} \\
+         2  & \gp   & \gl{FROM} \gn{from\_item} \\ \hline
+         3  & \multicolumn{2}{@{}l@{~}|}{\gn{from\_item}} \\
+         4  & \gp   & \gn{expr\_query} \gl{AS} \gn{var} (\gl{AT} \gn{var})? \\
+         5  & \gd   & \gn{expr\_query} \gl{AS} \gl{\{} \gn{var} \gl{:} \gn{var} \gl{\}} \\
+         6  & \gd   & \gn{from\_item} (\gl{INNER}\gd\gl{LEFT} \gl{OUTER}?) \gl{CORRELATE}? \gn{from\_item} \\
+         7  & \gd   & \gn{from\_item} \gl{FULL} \gl{OUTER}? \gl{CORRELATE}? \gn{from\_item} \gl{ON} \gn{expr\_query} \\
+         8  & \gd   & \gn{from\_item} \gl{,} \gn{from\_item} \\
+         9  & \gd   & \gn{from\_item} (\gl{INNER}\gd\gl{LEFT}\gd\gl{RIGHT}\gd\gl{FULL}) \gl{JOIN} \gn{from\_item} \\
+        10  &       & ~~~~ \gl{ON} \gn{expr\_query} \\
+        11  & \gd   & (\gl{INNER}\gd\gl{OUTER}) \gl{FLATTEN(}\gn{expr\_query} \gl{AS} \gs{var}\gl{,} \\
+        12  &       & ~~~~\gn{expr\_query} \gl{AS} \gs{var}\gl{)} \\ \hline
+        13  & \multicolumn{2}{@{}l@{~}|}{\gn{from\_param}} \\
+        14  & \gp   & \gl{bag\_order:}  (\gl{counter}\gd\gl{null}\gd\gl{missing}\gd\gl{error}) \\
+        15  & \gd   & \gl{coerce\_null\_to\_collection~~~:} (\gl{singleton}|\gl{empty}|\gl{error}) \\
+        16  & \gd   & \gl{coerce\_missing\_to\_collection:} (\gl{singleton}|\gl{empty}|\gl{error}) \\
+        17  & \gd   & \gl{coerce\_value\_to\_collection~~:} (\gl{singleton}|\gl{error}) \\
+        18  & \gd   & \gl{coerce\_null\_to\_tuple~~~:} (\gl{empty}|\gl{error}) \\   
+        19  & \gd   & \gl{coerce\_missing\_to\_tuple:} (\gl{empty}|\gl{error}) \\
+        20  & \gd   & \gl{no\_match:}  (\gl{null}\gd\gl{missing}) \\
+
+\hline
+\hline
+\end{tabular} 
+\caption{BNF Grammar for \texttt{FROM} Clause and \texttt{@from} Config Parameters}
+\label{figure:from:bnf}
+\end{figure}
+
+\newcommand{\linefrom}[1]{%
+    \IfEqCase*{#1}{%
+    {single}{Lines~4-5}%
+    {correlate}{Lines~6-7}%
+    {sugar}{Lines~8-12}%
+    {collection}{(line~4)}%
+    {bag order}{(Figure~\ref{figure:from:bnf}, line~14)}%
+    {coerce collection}{(Figure~\ref{figure:from:bnf}, lines 15-17)}%
+    {coerce tuple}{(Figure~\ref{figure:from:bnf}, lines 18-19)}%
+    {tuple}{(Figure~\ref{figure:from:bnf}, line~5)}%
+    {inner correlate}{(Figure~\ref{figure:from:bnf}, line~6)}%
+    {left correlate}{(Figure~\ref{figure:from:bnf}, line~6)}%
+    {no match}{(line~20)}%
+    {full correlate}{(Figure~\ref{figure:from:bnf}, line~7)}%
+    {cartesian product}{(Figure~\ref{figure:from:bnf}, line~8)}%
+    {join}{(lines~9-10)}%
+    {flatten}{(lines~11-12)}%
+    }[\errmessage{Unable to ref #1 for FROM BNF}]%
+}%

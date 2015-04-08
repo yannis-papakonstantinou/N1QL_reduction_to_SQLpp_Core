@@ -1,0 +1,104 @@
+
+%\section{Reduction of N1QL v4 to SQL++ Core}
+%\label{sec:n1ql}
+
+N1QL supports a large subset of SQL++ \cite{SQLpp-on-db.ucsd}. The syntactic differences between N1QL and SQL++ are driven by pragmatic considerations: First, N1QL guides the user towards expressing only the supported subset of SQL++, rather than allowing the users to write arbitrary SQL++, with the risk of allowing the user to write an unsupported query. For example, while SQL++ allows arbitrary joins, N1QL allows only efficient joins - that is, joins between primary keys and references. Second, N1QL introduces specialized syntactic constructs that are sensitive to the context in which they are used. For example, N1QL rather than allowing arbitrary SQL++ subqueries (or N1QL subqueries for that matter) at any point, it introduces special syntactic constructs that are specialized to range over just attribute/value pairs or just array elements of nested arrays. Finally, N1QL introduces syntactic constructs that, although unecessary from a strict expresiveness point of view, they are valuable in allowing the user to hint the optimal query plan.
+
+In this section we explain how the special syntactic constructs of N1QL's native syntax (N1QL version 4) are formally explained via a reduction to SQL++ core, i.e., can be seen as syntactic sugar over the SQL++ core. The following discussion is limited to N1QL features pertaining to the \texttt{SELECT} and \texttt{FROM}
+% and \texttt{GROUP BY} 
+functionality of SQL++. Occasionally, we reduce N1QL to SQL (rather than SQL++ core). In such case, the further reduction to SQL++ core is identical to SQL's reduction to SQL++ core.
+
+\yannis{Questions regarding syntax and semantics for Gerald:
+The \texttt{ALL} in \texttt{SELECT ALL} can be dropped. I.e., the default \texttt{SELECT} is \texttt{SELECT ALL}. Correct?\\
+Why do you allow ``AS alias" even in \texttt{RAW} cases? It seems to be doing nothing. Correct?\\
+The github document https://github.com/couchbaselabs/query/blob/027e8563239c9a036a287782c0c2814a62dd6efa/docs/n1ql-select.md supports OBJECT, the pdf http://docs.couchbase.com/prebuilt/n1ql/n1ql-dp4/N1QLRef-DP4.pdf does not and I was not able to run an OBJECT example on the tutorial site. Is the OBJECT in v4? I assume below it is. Correct?\\
+Please remind: What is the difference between ``USE KEYS" and ``USE PRIMARY KEYS"? I think they mean the same and can be used interchangeabley. Correct?\\
+}
+
+\yannis{Does the ``path.*" in result-expr assume that the path evaluated to tuple and the * ranges over tuples. That is, it cannot be an array. The following translation to SQL++ core assumes so. Correct?
+}
+
+\eat{
+The following N1QL structures reduces to SQL++ core by the same rewritings that SQL reduces to SQL++ core:
+\begin{compact_item}
+\item The \texttt{SELECT DISTINCT} reduces to \texttt{GROUP BY}.
+\item The \texttt{SELECT} {\em path}\texttt{.*} assumes that the result of path is a tuple reduces to a subquery that ranges over the attribute/value pairs of the tuple. That is:
+
+\[
+\begin{array}{l}
+\texttt{SELECT }\textit{path}\texttt{.*}\\
+\Rightarrow \texttt{SELECT }\texttt{(SELECT ATTRIBUTE a:v FROM }\textit{path }\texttt{AS \{a:v\})}
+\end{array}
+\]
+\end{compact_item}
+}
+
+\begin{figure}[b]
+\scriptsize
+\begin{tabular}{|@{~}rc@{~}l@{~}|}
+\hline
+\hline
+1 & \multicolumn{2}{@{}l@{~}|}{\gn{n1select}} \\
+2 & \gp & \gn{n1select-clause} \gn{n1from-clause} (\gn{n1group-by-clause})? \\ 
+%2 & \gp & \gn{n1select-from} \\
+% omitted n1from-select, n1select-from distinction
+% omitted LET, WHERE
+3 & \multicolumn{2}{@{}l@{~}|}{\gn{n1select-clause}} \\
+4 & \gp & \gl{SELECT} \gl{ELEMENT} \gn{n1expr} \\
+% omitted ALL, RAW (trivial), DISTINCT (same with SQL reduction), ``AS alias" because I do not understand the role of alias in a SELECT RAW, SELECT result-expr because its reduction to SQL++ core is identical to the reduction of SQL to SQL++ core
+5 & \multicolumn{2}{@{}l@{~}|}{\gn{n1from-clause}} \\
+6 & \gp & \gn{n1from-term} \\
+7 & \multicolumn{2}{@{}l@{~}|}{\gn{n1from-term}} \\
+8 & \gp & \gn{n1-path} \gl{AS} \gn{alias} \gn{use-keys-clause}\\
+9 & \gd & \gn{n1from-term} \gn{n1join-clause} \\
+10 & \gd & \gn{n1from-term} \gn{n1nest-clause} \\
+11 & \gd & \gn{n1from-term} \gn{n1unnest-clause} \\
+% omitted namespaces in definition of path
+12 & \multicolumn{2}{@{}l@{~}|}{\gn{n1use-keys-clause}} \\
+13 & \gp & \gl{USE} \gl{PRIMARY}? \gl{KEYS} \gn{n1expr} \\
+14 & \multicolumn{2}{@{}l@{~}|}{\gn{n1join-clause}} \\
+15 & \gp & \gn{n1join-type} \gl{JOIN} \gn{path} \gl{AS} \gn{var} \gn{n1on-keys-clause}\\ 
+16 & \multicolumn{2}{@{}l@{~}|}{\gn{n1join-type}} \\
+17 & \gp & \gl{INNER} \\
+18 & \gd & \gl{LEFT} \\
+19 & \multicolumn{2}{@{}l@{~}|}{\gn{n1on-keys-clause}} \\
+20 & \gp & \gl{ON} (\gl{PRIMARY})? \gl{KEYS} \gn{n1expr} \\
+21 & \multicolumn{2}{@{}l@{~}|}{\gn{n1unnest-clause}} \\
+22 & \gp & \gn{n1join-type} \gl{FLATTEN} \gn{n1expr} \gl{AS} \gn{var} \\
+23 & \multicolumn{2}{@{}l@{~}|}{\gn{n1nest-clause}} \\
+24 & \gp & \gn{n1join-type} \gl{NEST} \gn{path} \gl{AS} \gn{var} \gn{n1on-keys-clause}\\
+
+\hline
+\end{tabular}
+\caption{The reduced N1QL subset}
+\label{figure:n1ql-syntax}
+\end{figure}
+
+The \gn{n1from-term} corresponds to the \gn{from\_item}. Similarly to the definition of \gn{from\_item}, line~8 provides the base of the induction and lines 9-11 provide the inductive step. Unlike \gn{from\_item} that allows an arbitrary collection expression to produce bindings, the \gn{n1from-term} expects a path to provide the collection.
+
+The \gn{n1use-keys-clause} (line~8) restricts the bindings delivered by the \gn{n1from-term}. The following rewriting reduces \gn{n1use-keys-clause} into a SQL++ core expression. In order to emulate the function of keys in SQL++, we assume that the collection expression $e$ returns tuples, which are bound to $v$ and have a designed primary key attribute $p$.
+
+\[
+\begin{array}{l}
+e\ \gl{AS}\ v\ \gl{USE PRIMARY KEYS}\ k \Rightarrow\\
+(\gl{FROM}\ e\ \gl{AS}\ v \\
+\ \gl{WHERE}\ (\gl{SOME}\ r\ \gl{IN}\ k\ \gl{SATISFIES}\ v.p = r)\\
+\ \gl{SELECT ELEMENT}\ v \\
+\end{array}
+\]
+
+N1QL's \gl{JOIN} construct (lines~9 and~15) has introduced the special \gn{n1on-keys-clause} in lieu of SQL's arbitrary \gl{JOIN} condition (lines~9 and~10 of Figure~\ref{figure:from:bnf}), because the \gn{n1on-keys-clause} allows the user to express only foreign-key-to-primary-key joins, which are generally considered to be efficient joins. Therefore the \gn{n1on-keys-clause} is easily reduced to SQL by the following reduction. Assume that the left \gn{n1from-term} (line~9) $t_l$ defines an alias variable $v_l$ (possibly among others) that binds to tuples that have a primary key attribute $p$. (Again, in N1QL's case the primary key attribute would be implicit rather than explicit.) 
+
+\[
+\begin{array}{l}
+t_l\ \gn{n1join-type}\ \gl{JOIN}\ r\ \gl{AS}\ r_v\ \gl{ON KEYS}\  e(r_v) \Rightarrow\\
+t_l\ \gn{n1join-type}\ \gl{JOIN}\ r\ \gl{AS}\ r_v\ \gl{ON}\\
+\ \ \gl{SOME}\ x\ \gl{IN}\ e(r_v)\ \gl{SATISFIES}\ x = v_l.p\\
+\end{array}
+\]
+
+\yannis{Does the \gl{ON KEYS} clause always require the foreign keys be defined by an expression over the right hand side variable $r_v$? Could it be an expression over a variable of the left hand side and then assume that the primary keys are of the right hand side? How could you tell the direction?
+}
+
+The reduction of N1QL's \gl{FLATTEN} to SQL++ core was already discussed in \cite{SQLpp-on-db.ucsd}.
+

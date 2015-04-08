@@ -1,0 +1,122 @@
+\documentclass{article}
+
+\input{preamble}
+
+% Use either package to make commentary public or private. If commentary is
+% private, they will also be stripped by arxiv-sanitize.sh.
+%\usepackage{commentary-public}
+\usepackage{commentary-arxiv-private}
+
+\usepackage{version-extended-draft}            % Extended + Draft version
+
+%------------------------------------------------------------------------------- 
+% Macros
+%------------------------------------------------------------------------------- 
+
+% Set the version text flags on the "optional" package
+\setversiontextflags
+
+% Redefine \_ for a shorter rule, so that BNF non-terminals with two (or more words) are compacted together
+% http://tex.stackexchange.com/questions/4375/chardef-and-underscore
+\DeclareTextCommand{\_}{T1}{\leavevmode \kern.06em\vbox{\hrule width.4em}}
+
+%\def\sugar{\cellcolor[gray]{0.8}}
+\def\sugar{\rowcolor[gray]{0.85}}
+
+% http://tex.stackexchange.com/questions/32683/rotated-column-titles-in-tabular
+\usepackage{adjustbox}
+\newcolumntype{R}[2]{%
+    >{\adjustbox{angle=#1,lap=\width-(#2)}\bgroup}%
+    l%
+    <{\egroup}%
+}
+\newcommand*\rot[2]{\multicolumn{1}{R{#1}{#2}}}% no optional argument here, please!
+
+\newcolumntype{B}{|@{~}r@{~}|@{~}l@{~}c@{~}l@{~}|}  % (B)NF
+\newcolumntype{E}{@{}l@{~}c@{~}l@{}}                % (E)valuation Semantics
+\newcolumntype{N}{@{}l@{}}                          % (N)arrow
+
+\newcommand{\header}[1]{\multicolumn{1}{c|}{\textbf{#1}}}
+\newcommand{\feature}[1]{\textbf{#1}:}
+
+\def\env{\mathrm{\Gamma}}
+
+\usepackage{pifont}
+\usepackage{wasysym}
+
+\def\yes{$\checkmark$}
+\def\error{$\times$}
+\def\true{\texttt{t}}
+\def\false{\texttt{f}}
+\def\nulloption{\texttt{n}}
+\def\missing{\texttt{m}}
+\def\counter{\texttt{c}}
+\def\partial{\LEFTcircle}
+\def\irrelevant{-}
+\def\inconsistent{\ding{106}}
+% \def\same{\cellcolor[gray]{0.8}}
+
+\def\ground{G}
+\def\collscan{S^C}
+\def\outercollscan{O^C}
+\def\tuplescan{S^T}
+\def\outertuplescan{O^T}
+\def\tuplenav{N^T}
+\def\arraynav{N^A}
+\def\constructcoll{C^C}
+\def\constructtuple{C^T}
+\def\applyplan{\alpha}
+\def\corr{R}
+\def\flat{F}
+
+\def\evalto{\leadsto}
+\def\group{f_\texttt{GROUP}}
+\def\order{<^o}
+%\def\order{f_\texttt{ORDER}}
+\def\arr{\operatorname{array}}
+\def\bag{\operatorname{bag}}
+\def\tuple{\operatorname{tuple}}
+\def\map{\operatorname{map}}
+\def\fst{\operatorname{fst}}
+\def\sub{\operatorname{sub}}
+\def\sort{\operatorname{sort}}
+\def\setop{\operatorname{set\_op}}
+\def\union{\operatorname{union}}
+\def\unionall{\operatorname{union\_all}}
+\def\intersect{\operatorname{intersect}}
+\def\intersectall{\operatorname{intersect\_all}}
+\def\except{\operatorname{except}}
+\def\exceptall{\operatorname{except\_all}}
+\def\setopeq{\overset{@}{=}}
+
+\newcommand{\inrecord}[1]   { {#1}_{\operatorname{in}} } % {\dot{#1}}
+\newcommand{\outrecord}[1]  { {#1}_{\operatorname{out}} } % {\ddot{#1}}
+\newcommand{\inbinding}[1]  { {#1}_{\operatorname{in}} }
+\newcommand{\outbinding}[1] { {#1}_{\operatorname{out}} }
+
+\newcommand{\highlight}[1]{\noindent\textbf{#1:}}
+
+
+\begin{document}
+
+\title{Reduction of N1QL Core to SQL++ Core}
+
+\author{Yingyi Bu \and Kian Win Ong \and Yannis Papakonstantinou \and Gerald Sangudi}%
+
+\maketitle
+
+% Be less strict about word spacing to avoid various \texttt words overflowing the margins
+\begin{sloppypar}
+
+\input{n1ql}
+
+\input{sqlpp}
+
+\end{sloppypar}
+
+
+% Bibliography
+\bibliographystyle{abbrv}
+\bibliography{main}
+
+\end{document}

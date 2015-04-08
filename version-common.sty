@@ -1,0 +1,33 @@
+%------------------------------------------------------------------------------- 
+% Version Text Flags
+%------------------------------------------------------------------------------- 
+
+% - vldb    : Show VLDB text
+% - extended: Show extended text
+% - draft   : Show draft text
+% - color   : Color highlight each version
+
+%------------------------------------------------------------------------------- 
+% Version Macros
+%------------------------------------------------------------------------------- 
+
+% \ifvldb macro for VLDB text
+\newcommand{\ifvldb}[1]{%
+\opt{color}{\color{teal}[\textbf{VLDB: }}%
+\opt{vldb}{#1}%
+\opt{color}{]\color{black}}%
+}
+
+% \ifextended macro for extended text
+\newcommand{\ifextended}[1]{%
+\opt{color}{\color{orange}[\textbf{Extended: }}%
+\opt{extended}{#1}
+\opt{color}{]\color{black}}%
+}
+
+% \ifdraft macro for draft text
+\newcommand{\ifdraft}[1]{%
+\opt{color}{\color{violet}[\textbf{Draft: }}%
+\opt{draft}{#1}
+\opt{color}{]\color{black}}%
+}
